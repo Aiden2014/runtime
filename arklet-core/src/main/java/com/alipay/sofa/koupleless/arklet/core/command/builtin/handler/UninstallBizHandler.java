@@ -18,9 +18,11 @@ package com.alipay.sofa.koupleless.arklet.core.command.builtin.handler;
 
 import com.alipay.sofa.ark.api.ClientResponse;
 import com.alipay.sofa.ark.api.ResponseCode;
+import com.alipay.sofa.ark.common.util.BizIdentityUtils;
 import com.alipay.sofa.ark.common.util.StringUtils;
 import com.alipay.sofa.koupleless.arklet.core.command.builtin.BuiltinCommand;
 import com.alipay.sofa.koupleless.arklet.core.command.builtin.handler.UninstallBizHandler.Input;
+import com.alipay.sofa.koupleless.arklet.core.command.coordinate.BizOpsPodCoordinator;
 import com.alipay.sofa.koupleless.arklet.core.command.meta.AbstractCommandHandler;
 import com.alipay.sofa.koupleless.arklet.core.command.meta.Command;
 import com.alipay.sofa.koupleless.arklet.core.command.meta.Output;
@@ -37,15 +39,20 @@ import com.alipay.sofa.koupleless.arklet.core.common.exception.CommandValidation
  * @version 1.0.0
  */
 public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientResponse>
-                                 implements ArkBizOps {
+        implements ArkBizOps {
 
     /** {@inheritDoc} */
     @Override
     public Output<ClientResponse> handle(Input input) {
         try {
-            ClientResponse res = getOperationService().uninstall(input.getBizName(),
-                input.getBizVersion());
+            String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(), input.getBizVersion());
+            String bizModelVersion = input.getBizModelVersion();
+            if (!BizOpsPodCoordinator.canAccess(bizIdentity, bizModelVersion)) {
+                return Output.ofFailed("can not access biz because the command is expired");
+            }
+            ClientResponse res = getOperationService().uninstall(input.getBizName(), input.getBizVersion());
             if (ResponseCode.SUCCESS.equals(res.getCode())) {
+                BizOpsPodCoordinator.remove(bizIdentity, bizModelVersion);
                 return Output.ofSuccess(res);
             } else {
                 return Output.ofFailed(res, "uninstall biz not success!");
@@ -67,7 +74,7 @@ public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientRes
         notBlank(input.getBizName(), "bizName should not be blank");
         notBlank(input.getBizVersion(), "bizVersion should not be blank");
         isTrue(!input.isAsync() || !StringUtils.isEmpty(input.getRequestId()),
-            "requestId should not be blank when async is true");
+                "requestId should not be blank when async is true");
     }
 
     public static class Input extends ArkBizMeta {
