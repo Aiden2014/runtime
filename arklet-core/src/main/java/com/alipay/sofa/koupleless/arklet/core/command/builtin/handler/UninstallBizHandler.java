@@ -30,6 +30,8 @@ import com.alipay.sofa.koupleless.arklet.core.command.meta.bizops.ArkBizMeta;
 import com.alipay.sofa.koupleless.arklet.core.command.meta.bizops.ArkBizOps;
 import com.alipay.sofa.koupleless.arklet.core.common.exception.ArkletRuntimeException;
 import com.alipay.sofa.koupleless.arklet.core.common.exception.CommandValidationException;
+import com.alipay.sofa.koupleless.common.log.ArkletLogger;
+import com.alipay.sofa.koupleless.common.log.ArkletLoggerFactory;
 
 /**
  * <p>UninstallBizHandler class.</p>
@@ -41,6 +43,8 @@ import com.alipay.sofa.koupleless.arklet.core.common.exception.CommandValidation
 public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientResponse>
         implements ArkBizOps {
 
+    private static final ArkletLogger LOGGER = ArkletLoggerFactory.getDefaultLogger();
+
     /** {@inheritDoc} */
     @Override
     public Output<ClientResponse> handle(Input input) {
@@ -48,6 +52,9 @@ public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientRes
             String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(), input.getBizVersion());
             String bizModelVersion = input.getBizModelVersion();
             if (!BizOpsPodCoordinator.canAccess(bizIdentity, bizModelVersion)) {
+                LOGGER.error(
+                    "can not access biz because the command is expired. bizIdentity: {}, bizModelVersion: {}",
+                    bizIdentity, bizModelVersion);
                 return Output.ofFailed("can not access biz because the command is expired");
             }
             ClientResponse res = getOperationService().uninstall(input.getBizName(), input.getBizVersion());
