@@ -71,15 +71,19 @@ public class BizOpsPodCoordinator {
      * <p>
      * canAccess.
      * </p>
-     * 
-     * @param bizIdentity     a {@link java.lang.String} object
-     * @param bizModelVersion a {@link java.lang.String} object
-     * @return a boolean
+     * 判断是否可以访问指定的业务模块，基于业务模块版本的协调机制
+     * @param bizIdentity     业务模块标识 (bizName:bizVersion)
+     * @param bizModelVersion 业务模块模型版本，用于命令协调和防止过期命令执行
+     * @return 是否允许访问该业务模块
      */
     public static boolean canAccess(String bizIdentity, String bizModelVersion) {
+        // 判断逻辑说明：
+        // Case 1: bizModelVersion 为空 - 兼容性处理，允许访问（兼容旧版本 module-controller，arktcl, pod-not-exist 和 pod 紧急删除场景）
+        // Case 2: bizIdentityLockMap 中没有该 bizIdentity 的记录，允许访问（安装时不带 BizModelVersion，卸载时带上 BizModelVersion）
+        // Case 3: bizIdentityLockMap 中的版本与当前请求的版本匹配 - 版本一致，确认卸载的是该 Biz，允许访问
+        // 只有当 bizModelVersion 不为空且存在 bizModelVersion 且不匹配时，才拒绝访问（防止旧的卸载命令执行）
         return StringUtils.isEmpty(bizModelVersion)
                 || StringUtils.isEmpty(bizIdentityLockMap.get(bizIdentity))
                 || bizIdentityLockMap.get(bizIdentity).equals(bizModelVersion);
     }
-
 }
