@@ -41,7 +41,7 @@ import com.alipay.sofa.koupleless.common.log.ArkletLoggerFactory;
  * @version 1.0.0
  */
 public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientResponse>
-        implements ArkBizOps {
+                                 implements ArkBizOps {
 
     private static final ArkletLogger LOGGER = ArkletLoggerFactory.getDefaultLogger();
 
@@ -49,7 +49,8 @@ public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientRes
     @Override
     public Output<ClientResponse> handle(Input input) {
         try {
-            String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(), input.getBizVersion());
+            String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(),
+                input.getBizVersion());
             String bizModelVersion = input.getBizModelVersion();
             if (!BizOpsPodCoordinator.canAccess(bizIdentity, bizModelVersion)) {
                 LOGGER.error(
@@ -57,7 +58,8 @@ public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientRes
                     bizIdentity, bizModelVersion);
                 return Output.ofFailed("can not access biz because the command is expired");
             }
-            ClientResponse res = getOperationService().uninstall(input.getBizName(), input.getBizVersion());
+            ClientResponse res = getOperationService().uninstall(input.getBizName(),
+                input.getBizVersion());
             if (ResponseCode.SUCCESS.equals(res.getCode())) {
                 BizOpsPodCoordinator.remove(bizIdentity, bizModelVersion);
                 return Output.ofSuccess(res);
@@ -81,7 +83,7 @@ public class UninstallBizHandler extends AbstractCommandHandler<Input, ClientRes
         notBlank(input.getBizName(), "bizName should not be blank");
         notBlank(input.getBizVersion(), "bizVersion should not be blank");
         isTrue(!input.isAsync() || !StringUtils.isEmpty(input.getRequestId()),
-                "requestId should not be blank when async is true");
+            "requestId should not be blank when async is true");
     }
 
     public static class Input extends ArkBizMeta {

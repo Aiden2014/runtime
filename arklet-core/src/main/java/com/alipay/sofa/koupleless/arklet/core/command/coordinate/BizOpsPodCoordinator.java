@@ -96,7 +96,7 @@ public class BizOpsPodCoordinator {
         // Case 3: bizIdentityLockMap 中的版本与当前请求的版本匹配 - 版本一致，确认卸载的是该 Biz，允许访问
         // 只有当 bizModelVersion 不为空且存在 bizModelVersion 且不匹配时，才拒绝访问（防止旧的卸载命令执行）
         return StringUtils.isEmpty(bizModelVersion)
-                || StringUtils.isEmpty(bizIdentityLockMap.get(bizIdentity))
-                || bizIdentityLockMap.get(bizIdentity).equals(bizModelVersion);
+               || StringUtils.isEmpty(bizIdentityLockMap.get(bizIdentity))
+               || bizIdentityLockMap.get(bizIdentity).equals(bizModelVersion);
     }
 }

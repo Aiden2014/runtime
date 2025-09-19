@@ -56,8 +56,8 @@ import static com.alipay.sofa.koupleless.arklet.core.common.model.Constants.STRA
  * @version 1.0.0
  */
 public class InstallBizHandler extends
-        AbstractCommandHandler<InstallBizHandler.Input, InstallBizHandler.InstallBizClientResponse>
-        implements ArkBizOps {
+                               AbstractCommandHandler<InstallBizHandler.Input, InstallBizHandler.InstallBizClientResponse>
+                               implements ArkBizOps {
     private static final ArkletLogger LOGGER = ArkletLoggerFactory.getDefaultLogger();
 
     /** {@inheritDoc} */
@@ -67,11 +67,12 @@ public class InstallBizHandler extends
         long startSpace = metaSpaceMXBean.getUsage().getUsed();
         try {
             InstallBizClientResponse installBizClientResponse = convertClientResponse(
-                    getOperationService().install(convertInstallRequest(input)));
+                getOperationService().install(convertInstallRequest(input)));
             installBizClientResponse
-                    .setElapsedSpace(metaSpaceMXBean.getUsage().getUsed() - startSpace);
+                .setElapsedSpace(metaSpaceMXBean.getUsage().getUsed() - startSpace);
             if (ResponseCode.SUCCESS.equals(installBizClientResponse.getCode())) {
-                String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(), input.getBizVersion());
+                String bizIdentity = BizIdentityUtils.generateBizIdentity(input.getBizName(),
+                    input.getBizVersion());
                 String bizModelVersion = input.getBizModelVersion();
                 BizOpsPodCoordinator.save(bizIdentity, bizModelVersion);
                 return Output.ofSuccess(installBizClientResponse);
@@ -85,8 +86,8 @@ public class InstallBizHandler extends
 
     private InstallRequest convertInstallRequest(Input input) {
         return InstallRequest.builder().bizName(input.getBizName())
-                .bizVersion(input.getBizVersion()).bizUrl(input.getBizUrl()).args(input.getArgs())
-                .envs(input.getEnvs()).installStrategy(input.getInstallStrategy()).build();
+            .bizVersion(input.getBizVersion()).bizUrl(input.getBizUrl()).args(input.getArgs())
+            .envs(input.getEnvs()).installStrategy(input.getInstallStrategy()).build();
     }
 
     private InstallBizClientResponse convertClientResponse(ClientResponse res) {
@@ -111,12 +112,12 @@ public class InstallBizHandler extends
 
     public static void validateInput(Input input) throws CommandValidationException {
         isTrue(!input.isAsync() || !StringUtils.isEmpty(input.getRequestId()),
-                "requestId should not be blank when async is true");
+            "requestId should not be blank when async is true");
         notBlank(input.getBizUrl(), "bizUrl should not be blank");
 
         if (StringUtils.isEmpty(input.getBizName()) || StringUtils.isEmpty(input.getBizVersion())) {
             LOGGER.warn(
-                    "biz name and version should not be empty, or it will reduce the performance.");
+                "biz name and version should not be empty, or it will reduce the performance.");
         }
 
         if (StringUtils.isEmpty(input.getBizName()) && StringUtils.isEmpty(input.getBizVersion())) {
@@ -125,16 +126,16 @@ public class InstallBizHandler extends
                 refreshBizInfoFromJar(input);
             } catch (IOException e) {
                 throw new CommandValidationException(
-                        String.format("refresh biz info from jar failed: %s", e.getMessage()));
+                    String.format("refresh biz info from jar failed: %s", e.getMessage()));
             }
         } else if (!StringUtils.isEmpty(input.getBizName())
-                && !StringUtils.isEmpty(input.getBizVersion())) {
+                   && !StringUtils.isEmpty(input.getBizVersion())) {
             // if bizName and bizVersion is not blank, it means that we should install the biz with the given bizName and bizVersion.
             // do nothing.
         } else {
             // if bizName or bizVersion is blank, it is invalid, throw exception.
             throw new CommandValidationException(
-                    "bizName and bizVersion should be both blank or both not blank.");
+                "bizName and bizVersion should be both blank or both not blank.");
         }
     }
 
